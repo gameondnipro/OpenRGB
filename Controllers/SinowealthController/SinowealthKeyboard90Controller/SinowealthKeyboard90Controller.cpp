@@ -120,27 +120,33 @@ void SinowealthKeyboard90Controller::SendCommit()
 
 void SinowealthKeyboard90Controller::SendAllLeds(unsigned char* color_data, unsigned int data_size)
 {
-    // 1. Пакет активации (Магические числа для Sinowealth 90)
-    unsigned char activate[65]; // Обычно 64 + Report ID
-    memset(activate, 0x00, sizeof(activate));
-    activate[0] = 0x07; // Report ID
-    activate[1] = 0x13; // Команда "Custom Mode"
-    activate[2] = 0x01; // Включить
-    activate[3] = 0x01; 
-    hid_send_feature_report(dev, activate, sizeof(activate));
-
-    // 2. Основной пакет с цветами
-    // Твоя клавиатура ждет 256 байт данных + 1 байт Report ID
+    // Буфер: 1 байт Report ID + 256 байт данных = 257
     std::vector<unsigned char> usb_buf(257, 0x00);
-    usb_buf[0] = 0x07; // Report ID
-    usb_buf[1] = 0x82; // Запись цветов
-    usb_buf[2] = 0x01; // Короткий пакет/первая часть
 
-    // По дампу мы видели данные со смещения 48.
-    // Давай для теста зажжем всё ЗЕЛЕНЫМ (у Sinowealth часто порядок BGR или GRB)
-    for(int i = 4; i < 257; i++) {
-        usb_buf[i] = 0xFF; 
+    // Заголовок из твоего лога (07 82 01 00 00 68 00 00 01)
+    usb_buf[0] = 0x07; // Report ID
+    usb_buf[1] = 0x82; // Command
+    usb_buf[2] = 0x01; // Sub-command для статичного цвета
+    usb_buf[3] = 0x00;
+    usb_buf[4] = 0x00;
+    usb_buf[5] = 0x68; // Это, вероятно, "длина" данных или тип эффекта
+    usb_buf[6] = 0x00;
+    usb_buf[7] = 0x00;
+    usb_buf[8] = 0x01;
+
+    // В логе софта цвета начинаются примерно с 60-го байта (где FF FF FF).
+    // Давай для теста зальем массив с 9-го по 256-й байт красным цветом.
+    // Если порядок RGB, то это будет FF 00 00.
+    for(int i = 9; i < 250; i += 3) {
+        usb_buf[i]     = 0xFF; // R
+        usb_buf[i + 1] = 0x00; // G
+        usb_buf[i + 2] = 0x00; // B
     }
 
-    hid_send_feature_report(dev, usb_buf.data(), usb_buf.size());
+    // ВАЖНО: Убедись, что в SinowealthControllerDetect.cpp стоит Interface 2
+    int ret = hid_send_feature_report(dev, usb_buf.data(), usb_buf.size());
+
+    if (ret < 0) {
+        LOG_DEBUG("[Daylight 87] Failed! Error: %ls", hid_error(dev));
+    }
 }
