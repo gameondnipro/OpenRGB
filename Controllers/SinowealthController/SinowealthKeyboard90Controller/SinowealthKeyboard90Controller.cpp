@@ -120,28 +120,27 @@ void SinowealthKeyboard90Controller::SendCommit()
 
 void SinowealthKeyboard90Controller::SendAllLeds(unsigned char* color_data, unsigned int data_size)
 {
-    // 1. Пакет активации режима Custom (0x13)
-    // Без этого клавиатура может игнорировать данные о цветах
-    unsigned char unlock_buf[9];
-    memset(unlock_buf, 0x00, sizeof(unlock_buf));
-    unlock_buf[0] = 0x07;
-    unlock_buf[1] = 0x13; // MODE_CUSTOM
-    hid_send_feature_report(dev, unlock_buf, sizeof(unlock_buf));
+    // 1. Пакет активации (Магические числа для Sinowealth 90)
+    unsigned char activate[65]; // Обычно 64 + Report ID
+    memset(activate, 0x00, sizeof(activate));
+    activate[0] = 0x07; // Report ID
+    activate[1] = 0x13; // Команда "Custom Mode"
+    activate[2] = 0x01; // Включить
+    activate[3] = 0x01; 
+    hid_send_feature_report(dev, activate, sizeof(activate));
 
     // 2. Основной пакет с цветами
-    std::vector<unsigned char> usb_buf(284, 0x00);
-    usb_buf[0] = 0x07;
-    usb_buf[1] = 0x82;
-    usb_buf[2] = 0x01;
+    // Твоя клавиатура ждет 256 байт данных + 1 байт Report ID
+    std::vector<unsigned char> usb_buf(257, 0x00);
+    usb_buf[0] = 0x07; // Report ID
+    usb_buf[1] = 0x82; // Запись цветов
+    usb_buf[2] = 0x01; // Короткий пакет/первая часть
 
-    // Смещение 48 байт 
-    unsigned int offset = 48;
-    if(data_size + offset > 284) data_size = 284 - offset;
-    memcpy(&usb_buf[offset], color_data, data_size);
-
-    int ret = hid_send_feature_report(dev, usb_buf.data(), usb_buf.size());
-    
-    if (ret < 0) {
-        LOG_DEBUG("[Daylight 87] Failed to send LED data");
+    // По дампу мы видели данные со смещения 48.
+    // Давай для теста зажжем всё ЗЕЛЕНЫМ (у Sinowealth часто порядок BGR или GRB)
+    for(int i = 4; i < 257; i++) {
+        usb_buf[i] = 0xFF; 
     }
+
+    hid_send_feature_report(dev, usb_buf.data(), usb_buf.size());
 }
