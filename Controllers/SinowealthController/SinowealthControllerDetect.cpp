@@ -436,9 +436,9 @@ static void DetectDaylight87(hid_device_info* info, const std::string& name)
     hid_device* dev = hid_open_path(info->path);
     if(dev)
     {
-        SinowealthKeyboard90Controller* controller         = new SinowealthKeyboard90Controller(dev, info->path, info->product_id);
+        SinowealthKeyboard90Controller* controller = new SinowealthKeyboard90Controller(dev, info->path, info->product_id, name);
         RGBController_SinowealthKeyboard90* rgb_controller = new RGBController_SinowealthKeyboard90(controller);
-        rgb_controller->name                               = name;
+        rgb_controller->name = name; 
 
         ResourceManager::get()->RegisterRGBController(rgb_controller);
     }
@@ -478,7 +478,7 @@ REGISTER_HID_DETECTOR_PU("Glorious Model D / D- Wireless",  DetectGMOW_Cable,   
 REGISTER_HID_DETECTOR_PU("Genesis Xenon 200",               DetectGenesisXenon200,              SINOWEALTH_VID, GENESIS_XENON_200_PID,                  0xFF00, 1       );
 REGISTER_HID_DETECTOR_IPU("Genesis Thor 300",               DetectSinowealthGenesisKeyboard,    SINOWEALTH_VID, GENESIS_THOR_300_PID,               1,  0xFF00, 1       );
 REGISTER_HID_DETECTOR_IPU("Sinowealth Keyboard",            DetectSinowealthKeyboard10c,        SINOWEALTH_VID, RGB_KEYBOARD_010CPID,               1,  0xFF00, 1       );
-REGISTER_HID_DETECTOR_IPU("Dark Project Daylight 87", DetectDaylight87, GSKY_VID, DPKB_DAYLIGHT_87_PID, 2, 0xFF01, 1);
+REGISTER_HID_DETECTOR_IPU("Dark Project Daylight 87",       DetectDaylight87,                   GSKY_VID,       DPKB_DAYLIGHT_87_PID,               2,  0xFF01, 1       );
 // Sinowealth keyboards are disabled due to VID/PID pairs being reused from Redragon keyboards, which ended up in bricking the latter
 //REGISTER_HID_DETECTOR_P("FL ESPORTS F11",                   DetectSinowealthKeyboard,   SINOWEALTH_VID, Fl_Esports_F11_PID,                             0xFF00          );
 //REGISTER_HID_DETECTOR_P("Sinowealth Keyboard",              DetectSinowealthKeyboard16, SINOWEALTH_VID, RGB_KEYBOARD_0016PID,                           0xFF00          );
