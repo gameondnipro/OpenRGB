@@ -120,17 +120,28 @@ void SinowealthKeyboard90Controller::SendCommit()
 
 void SinowealthKeyboard90Controller::SendAllLeds(unsigned char* color_data, unsigned int data_size)
 {
-    unsigned char usb_buf[284];
-    memset(usb_buf, 0x00, sizeof(usb_buf));
+    // 1. Пакет активации режима Custom (0x13)
+    // Без этого клавиатура может игнорировать данные о цветах
+    unsigned char unlock_buf[9];
+    memset(unlock_buf, 0x00, sizeof(unlock_buf));
+    unlock_buf[0] = 0x07;
+    unlock_buf[1] = 0x13; // MODE_CUSTOM
+    hid_send_feature_report(dev, unlock_buf, sizeof(unlock_buf));
 
+    // 2. Основной пакет с цветами
+    std::vector<unsigned char> usb_buf(284, 0x00);
     usb_buf[0] = 0x07;
-    usb_buf[1] = 0x82; 
-    usb_buf[2] = 0x01; 
+    usb_buf[1] = 0x82;
+    usb_buf[2] = 0x01;
 
-    unsigned int offset = 48; 
+    // Смещение 48 байт 
+    unsigned int offset = 48;
     if(data_size + offset > 284) data_size = 284 - offset;
-    
     memcpy(&usb_buf[offset], color_data, data_size);
 
-    hid_send_feature_report(dev, usb_buf, sizeof(usb_buf));
+    int ret = hid_send_feature_report(dev, usb_buf.data(), usb_buf.size());
+    
+    if (ret < 0) {
+        LOG_DEBUG("[Daylight 87] Failed to send LED data");
+    }
 }
