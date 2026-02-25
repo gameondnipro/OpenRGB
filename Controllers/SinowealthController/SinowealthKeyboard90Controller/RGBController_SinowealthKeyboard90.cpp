@@ -132,18 +132,32 @@ void RGBController_SinowealthKeyboard90::ResizeZone(int /*zone*/, int /*new_size
 
 void RGBController_SinowealthKeyboard90::DeviceUpdateLEDs()
 {
-    controller->SendMode(modes[active_mode].value, modes[active_mode].brightness);
-    for(std::size_t led_idx = 0; led_idx < leds.size(); led_idx++)
+    if (controller->GetUSBPID() == 0xE40F)
     {
-        unsigned char key           = leds[led_idx].value;
-        unsigned char red           = RGBGetRValue(colors[led_idx]);
-        unsigned char green         = RGBGetGValue(colors[led_idx]);
-        unsigned char blue          = RGBGetBValue(colors[led_idx]);
-
-        controller->SendSingleLED(key, red, green, blue);
+        unsigned char color_buffer[104 * 3];
+        
+        for(std::size_t led_idx = 0; led_idx < leds.size(); led_idx++)
+        {
+            color_buffer[led_idx * 3 + 0] = RGBGetRValue(colors[led_idx]);
+            color_buffer[led_idx * 3 + 1] = RGBGetGValue(colors[led_idx]);
+            color_buffer[led_idx * 3 + 2] = RGBGetBValue(colors[led_idx]);
+        }
+        
+        controller->SendAllLeds(color_buffer, sizeof(color_buffer));
     }
-
-    controller->SendCommit();
+    else 
+    {
+        controller->SendMode(modes[active_mode].value, modes[active_mode].brightness);
+        for(std::size_t led_idx = 0; led_idx < leds.size(); led_idx++)
+        {
+            unsigned char key   = leds[led_idx].value;
+            unsigned char red   = RGBGetRValue(colors[led_idx]);
+            unsigned char green = RGBGetGValue(colors[led_idx]);
+            unsigned char blue  = RGBGetBValue(colors[led_idx]);
+            controller->SendSingleLED(key, red, green, blue);
+        }
+        controller->SendCommit();
+    }
 }
 
 void RGBController_SinowealthKeyboard90::UpdateZoneLEDs(int /*zone*/)
