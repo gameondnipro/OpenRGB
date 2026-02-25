@@ -431,15 +431,15 @@ static void DetectSinowealthGenesisKeyboard(hid_device_info* info, const std::st
     }
 }
 
+
 static void DetectDaylight87(hid_device_info* info, const std::string& name)
 {
     hid_device* dev = hid_open_path(info->path);
     if(dev)
     {
-        SinowealthKeyboard90Controller* controller = new SinowealthKeyboard90Controller(dev, info->path, info->product_id, name);
-        RGBController_SinowealthKeyboard90* rgb_controller = new RGBController_SinowealthKeyboard90(controller);
+        SinowealthKeyboard10cController* controller = new SinowealthKeyboard10cController(dev, info->path, name);
+        RGBController_SinowealthKeyboard10c* rgb_controller = new RGBController_SinowealthKeyboard10c(controller, 0); // 0 - индекс модели
         rgb_controller->name = name; 
-
         ResourceManager::get()->RegisterRGBController(rgb_controller);
     }
 }
