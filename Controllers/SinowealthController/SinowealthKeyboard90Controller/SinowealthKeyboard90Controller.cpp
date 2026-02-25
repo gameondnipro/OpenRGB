@@ -117,3 +117,20 @@ void SinowealthKeyboard90Controller::SendCommit()
 {
     SendSingleLED(0x89);
 }
+
+void SinowealthKeyboard90Controller::SendAllLeds(unsigned char* color_data, unsigned int data_size)
+{
+    unsigned char usb_buf[284];
+    memset(usb_buf, 0x00, sizeof(usb_buf));
+
+    usb_buf[0] = 0x07;
+    usb_buf[1] = 0x82; 
+    usb_buf[2] = 0x01; 
+
+    unsigned int offset = 48; 
+    if(data_size + offset > 284) data_size = 284 - offset;
+    
+    memcpy(&usb_buf[offset], color_data, data_size);
+
+    hid_send_feature_report(dev, usb_buf, sizeof(usb_buf));
+}
