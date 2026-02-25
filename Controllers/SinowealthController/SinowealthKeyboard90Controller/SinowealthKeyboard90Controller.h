@@ -230,8 +230,6 @@ public:
 
     void            SendAllLeds(unsigned char* color_data, unsigned int data_size);
 
-private:
-    hid_device* dev;
 
 private:
     hid_device*     dev;
