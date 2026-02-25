@@ -30,7 +30,8 @@
 #include "LogManager.h"
 
 #define SINOWEALTH_VID                      0x258A
-
+#define GSKY_VID                            0x342D
+#define DPKB_DAYLIGHT_87_PID                0xE40F
 #define Glorious_Model_O_PID                0x0036
 #define Glorious_Model_OW_PID1              0x2022 // wireless
 #define Glorious_Model_OW_PID2              0x2011 // when connected via cable
@@ -430,6 +431,19 @@ static void DetectSinowealthGenesisKeyboard(hid_device_info* info, const std::st
     }
 }
 
+static void DetectDaylight87(hid_device_info* info, const std::string& name)
+{
+    hid_device* dev = hid_open_path(info->path);
+    if(dev)
+    {
+        SinowealthKeyboard90Controller* controller         = new SinowealthKeyboard90Controller(dev, info->path, info->product_id);
+        RGBController_SinowealthKeyboard90* rgb_controller = new RGBController_SinowealthKeyboard90(controller);
+        rgb_controller->name                               = name;
+
+        ResourceManager::get()->RegisterRGBController(rgb_controller);
+    }
+}
+
 static void DetectSinowealthKeyboard10c(hid_device_info* info, const std::string& name)
 {
     unsigned char command[7] = {0x06, 0x82, 0x01, 0x00, 0x01, 0x00, 0x06};
@@ -464,7 +478,7 @@ REGISTER_HID_DETECTOR_PU("Glorious Model D / D- Wireless",  DetectGMOW_Cable,   
 REGISTER_HID_DETECTOR_PU("Genesis Xenon 200",               DetectGenesisXenon200,              SINOWEALTH_VID, GENESIS_XENON_200_PID,                  0xFF00, 1       );
 REGISTER_HID_DETECTOR_IPU("Genesis Thor 300",               DetectSinowealthGenesisKeyboard,    SINOWEALTH_VID, GENESIS_THOR_300_PID,               1,  0xFF00, 1       );
 REGISTER_HID_DETECTOR_IPU("Sinowealth Keyboard",            DetectSinowealthKeyboard10c,        SINOWEALTH_VID, RGB_KEYBOARD_010CPID,               1,  0xFF00, 1       );
-
+REGISTER_HID_DETECTOR_IPU("Dark Project Daylight 87", DetectDaylight87, GSKY_VID, DPKB_DAYLIGHT_87_PID, 2, 0xFF01, 1);
 // Sinowealth keyboards are disabled due to VID/PID pairs being reused from Redragon keyboards, which ended up in bricking the latter
 //REGISTER_HID_DETECTOR_P("FL ESPORTS F11",                   DetectSinowealthKeyboard,   SINOWEALTH_VID, Fl_Esports_F11_PID,                             0xFF00          );
 //REGISTER_HID_DETECTOR_P("Sinowealth Keyboard",              DetectSinowealthKeyboard16, SINOWEALTH_VID, RGB_KEYBOARD_0016PID,                           0xFF00          );
@@ -479,7 +493,7 @@ REGISTER_HID_DETECTOR_I("Glorious Model D / D- Wireless",   DetectGMOW_Dongle,  
 REGISTER_HID_DETECTOR_I("Glorious Model D / D- Wireless",   DetectGMOW_Cable,                   SINOWEALTH_VID, Glorious_Model_DW_PID2,             2);
 REGISTER_HID_DETECTOR_I("Genesis Xenon 200",                DetectGenesisXenon200,              SINOWEALTH_VID, GENESIS_XENON_200_PID,              1);
 REGISTER_HID_DETECTOR_I("Genesis Thor 300",                 DetectSinowealthGenesisKeyboard,    SINOWEALTH_VID, GENESIS_THOR_300_PID,               1);
-
+REGISTER_HID_DETECTOR_I("Dark Project Daylight 87", DetectDaylight87, GSKY_VID, DPKB_DAYLIGHT_87_PID, 2);
 //REGISTER_HID_DETECTOR_I("FL ESPORTS F11",                   DetectSinowealthKeyboard,   SINOWEALTH_VID, Fl_Esports_F11_PID,                         1);
 //REGISTER_HID_DETECTOR_I("Sinowealth Keyboard",              DetectSinowealthKeyboard16, SINOWEALTH_VID, RGB_KEYBOARD_0016PID,                       1);
 #endif
